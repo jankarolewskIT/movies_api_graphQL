@@ -5,6 +5,7 @@ from graphene_django.types import DjangoObjectType
 import graphql_jwt
 from django.shortcuts import get_object_or_404
 from graphql_jwt.decorators import login_required
+from graphql_relay import from_global_id
 
 from .models import Movie, Director
 
@@ -59,15 +60,16 @@ class Query(graphene.ObjectType):
     director = relay.Node.Field(DirectorNode)
 
 
-class MovieCreateMutation(graphene.Mutation):
-    class Arguments:
+class MovieCreateMutation(relay.ClientIDMutation):
+    class Input:
         title = graphene.String(required=True)
         year = graphene.Int(required=True)
 
     movie = graphene.Field(MovieType)
 
+    @classmethod
     @login_required
-    def mutate(self, info, title, year, **kwargs):
+    def mutate_and_get_payload(cls, root, info, **kwargs):
         """Create an obj and save it in DB
         function check if user is authenticated
 
@@ -79,21 +81,22 @@ class MovieCreateMutation(graphene.Mutation):
         Returns:
             movie: Movie obj
         """
-        movie = Movie.objects.create(title=title, year=year)
+        movie = Movie.objects.create(title=kwargs.get('title'), year=kwargs.get('year'))
 
         return MovieCreateMutation(movie)
 
 
-class MovieUpdateMutation(graphene.Mutation):
-    class Arguments:
+class MovieUpdateMutation(relay.ClientIDMutation):
+    class Input:
+        id = graphene.ID(required=True) 
         title = graphene.String()
         year = graphene.Int()
-        id = graphene.ID(required=True)
 
     movie = graphene.Field(MovieType)
-
+    
+    @classmethod
     @login_required
-    def mutate(self, info, id, title, year, **kwargs):
+    def mutate_and_get_payload(cls,info, id, title, year, **kwargs):
         """Update a movie
         function check if user is authenticated
         Args:
@@ -105,7 +108,7 @@ class MovieUpdateMutation(graphene.Mutation):
         Returns:
             movie: Updated Movie
         """
-        movie = Movie.objects.get(pk=id)
+        movie = Movie.objects.get(pk=from_global_id(id)[1])
         if title:
             movie.title = title
         if year:
@@ -115,13 +118,15 @@ class MovieUpdateMutation(graphene.Mutation):
         return MovieUpdateMutation(movie)
 
 
-class MovieDeleteMutation(graphene.Mutation):
-    class Arguments:
+class MovieDeleteMutation(relay.ClientIDMutation):
+    class Input:
         id = graphene.ID()
+
     movie = graphene.Field(MovieType)
 
+    @classmethod
     @login_required
-    def mutate(self, info, id):
+    def mutate_and_get_payload(cls, root, info, **kwargs):
         """Mutation for deliting a movie from DB
         function check if user is authenticated
 
@@ -132,11 +137,11 @@ class MovieDeleteMutation(graphene.Mutation):
         Returns:
             movie: Deleted movie
         """
-        movie = get_object_or_404(Movie, id=id)
+        movie = Movie.objects.get(pk=from_global_id(kwargs.get('id'))[1])
         if movie:
             movie.delete()
 
-        return MovieDeleteMutation(movie)
+        return MovieDeleteMutation(movie=None)
 
 
 class Mutation:
