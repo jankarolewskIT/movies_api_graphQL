@@ -35,54 +35,28 @@ class DirectorType(DjangoObjectType):
 class MovieNode(DjangoObjectType):
     class Meta:
         model = Movie
-        filter_fields = ["title", "year"]
+        filter_fields = {
+            "title": ["exact", "icontains", "istartswith", ],
+            "year": ["exact", ]
+        }
+        interfaces = (relay.Node, )
+
+
+class DirectorNode(DjangoObjectType):
+    class Meta:
+        model = Director
+        filter_fields = {
+            "name": ["exact", "icontains", "istartswith", ],
+            "surname": ["exact", "icontains", "istartswith", ],
+        }
         interfaces = (relay.Node, )
 
 
 class Query(graphene.ObjectType):
-    # all_movies = graphene.List(MovieType)
     all_movies = DjangoFilterConnectionField(MovieNode)
-    movie = graphene.Field(MovieType, id=graphene.Int(),
-                           title=graphene.String())
-    all_directors = graphene.List(DirectorType)
-
-    # @login_required
-    # def resolve_all_movies(self, info, **kwargs):
-    #     """Return all movies from DB
-
-    #     Args:
-    #         info (request): info about request
-
-    #     Raises:
-    #         Exception: Custom exception
-
-    #     Returns:
-    #         Query: dicionary with all movies
-    #     """
-
-    #     return Movie.objects.all()
-
-    def resolve_movie(self, info, **kwargs):
-        """Get one movie from DB
-
-        Args:
-            info (request): info about request
-
-        Returns:
-            dict: querydict
-        """
-        id = kwargs.get('id')
-        title = kwargs.get('title')
-        if id:
-            return Movie.objects.get(pk=id)
-
-        if title:
-            return Movie.objects.get(title=title)
-
-        return None
-
-    def resolve_all_directors(self, info, **kwargs):
-        return Director.objects.all()
+    movie = relay.Node.Field(MovieNode)
+    all_directors = DjangoFilterConnectionField(DirectorNode)
+    director = relay.Node.Field(DirectorNode)
 
 
 class MovieCreateMutation(graphene.Mutation):
