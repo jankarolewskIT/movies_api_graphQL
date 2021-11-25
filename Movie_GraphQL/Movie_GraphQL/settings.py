@@ -156,6 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GRAPHENE = {
     "SCHEMA" : "Movie_GraphQL.schema.schema", 
+    "SCHEMA_OUTPUT": 'Movie_GraphQL/data/movie_schema.json',
     "MIDDLEWARE": [
         "graphql_jwt.middleware.JSONWebTokenMiddleware",
     ],
