@@ -81,22 +81,23 @@ class MovieCreateMutation(relay.ClientIDMutation):
         Returns:
             movie: Movie obj
         """
-        movie = Movie.objects.create(title=kwargs.get('title'), year=kwargs.get('year'))
+        movie = Movie.objects.create(
+            title=kwargs.get('title'), year=kwargs.get('year'))
 
         return MovieCreateMutation(movie)
 
 
 class MovieUpdateMutation(relay.ClientIDMutation):
     class Input:
-        id = graphene.ID(required=True) 
+        id = graphene.ID(required=True)
         title = graphene.String()
         year = graphene.Int()
 
     movie = graphene.Field(MovieType)
-    
+
     @classmethod
     @login_required
-    def mutate_and_get_payload(cls,info, id, title, year, **kwargs):
+    def mutate_and_get_payload(cls, info, id, title, year, **kwargs):
         """Update a movie
         function check if user is authenticated
         Args:
