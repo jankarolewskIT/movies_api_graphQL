@@ -2,11 +2,11 @@
 
 <p>A small Django project aiming to establish GrapQL API.</p>
 
-<h4>How to use</h34>
+<h4>How to use</h4>
 
 1. Clone this repository
 2. Move to main directory and type:
-  <strong>docker-compose up</strong?
+  <strong>docker-compose up</strong>
   this will create a Postgres database and web application inside separate containers. 
 3. Move to the container with the web application and migrate the data. When you are in your container type:
   <strong>python manage.py migrate</strong>
